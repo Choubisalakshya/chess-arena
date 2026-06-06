@@ -1,0 +1,73 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+
+  username  String   @unique
+  email     String   @unique
+  password  String
+
+  rating    Int      @default(1200)
+
+  createdAt DateTime @default(now())
+
+  // RELATIONS
+  whiteGames Game[] @relation("WhiteGames")
+  blackGames Game[] @relation("BlackGames")
+  wonGames   Game[] @relation("WonGames")
+}
+
+model Game {
+  id Int @id @default(autoincrement())
+
+  roomId String @unique
+
+  whiteId Int
+  blackId Int?
+
+  winnerId Int?
+
+  result String?
+  status String @default("ONGOING")
+
+  pgn String?
+  fen String?
+
+  createdAt DateTime @default(now())
+  endedAt DateTime?
+
+  // RELATIONS
+  white User @relation("WhiteGames", fields: [whiteId], references: [id])
+
+  black User? @relation("BlackGames", fields: [blackId], references: [id])
+
+  winner User? @relation("WonGames", fields: [winnerId], references: [id])
+
+  moves Move[]
+}
+
+model Move {
+  id Int @id @default(autoincrement())
+
+  gameId Int
+
+  moveNumber Int
+
+  san String
+
+  fromSq String
+  toSq String
+
+  fenAfter String
+
+  createdAt DateTime @default(now())
+
+  game Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
+}
